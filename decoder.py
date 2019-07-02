@@ -42,4 +42,4 @@ def parseDMI(string):
 if __name__ == "__main__":
     data = open("data.txt", "r").read()
     parsed = parseDMI(data)
-    print json.dumps(parsed, default=lambda o: o.__dict__, indent=2)
+    print(json.dumps(parsed, default=lambda o: o.__dict__, indent=2))
