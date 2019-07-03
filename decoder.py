@@ -7,6 +7,8 @@ class Section:
         self.data = {}
     def set_property(self, key, val):
         self.data[key] = val
+    def get_property(self, key):
+        return self.data[key]
 
 class DMIParser:
     def count_tabs(self, string):
@@ -20,28 +22,30 @@ class DMIParser:
 
     def parse_dmi(self, string):
         DMIData = {}
-        lasOpenSection = ""
-        variableData = ""
-        variableName = ""
+        last_open_section = ""
+        variable_data = ""
+        variable_name = ""
         for line in string.split('\n')[6:]:
             tabs_count = self.count_tabs(line)
             
-            if variableName != "" and tabs_count != 2:
-                DMIData[lastOpenSection].set_property(variableName, variableData.strip())
-                variableName = variableData = ""
+            if variable_name != "" and tabs_count != 2:
+                DMIData[last_open_section].set_property(variable_name, variable_data.strip())
+                variable_name = variable_data = ""
             if len(line) == 0:
                 continue
             elif len(line) > 6 and line[0:6] == "Handle":
-              handleData = self.parse_handle(line)
+              handle_data = self.parse_handle(line)
             elif tabs_count == 0:
-                DMIData[line] = Section(handleData[0], handleData[1], handleData[2])
-                lastOpenSection = line
+                DMIData[line] = Section(handle_data[0], handle_data[1], handle_data[2])
+                last_open_section = line
             elif tabs_count == 1:
                 splitted = line.split(':')
-                variableName = splitted[0].strip()
-                variableData = splitted[1].strip() + "\n"
+                variable_name = splitted[0].strip()
+                variable_data = splitted[1].strip() + "\n"
             else:
-                variableData += line[2:] + "\n"
+                variable_data += line[2:] + "\n"
+        if variable_name != "":
+            DMIData[last_open_section].set_property(variable_name, variable_data.strip())
         return DMIData
 
 if __name__ == "__main__":
