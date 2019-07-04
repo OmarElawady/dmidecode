@@ -2,6 +2,7 @@ DMIdecode parser
 ================
 
 This is a project to parse the result of the linux command dmidecode.
+A full [documentation](https://omarelawady.github.io/dmidecode/doc/decoder.html) for the project.
 
 Sample Usage
 ============
