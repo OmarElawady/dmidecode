@@ -25,8 +25,8 @@ OEM-specific Type
 \t\t00h
 \t\t00h"""
 
-result = decoder.DMIParser.parse(sample)
+result = decoder.DMIParser().parse_dmi(sample)
 print(result["OEM-specific Type"].handle) # 0xDA02
-print(result["OES-specific Type"].data["Header and Data"]) # DB 0B 02 DA 02 01 02 03 FF 04 05
+print(result["OEM-specific Type"].data["Header and Data"]) # DB 0B 02 DA 02 01 02 03 FF 04 05
 ```
 
