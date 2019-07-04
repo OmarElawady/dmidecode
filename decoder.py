@@ -25,7 +25,8 @@ class DMIParser:
         last_open_section = ""
         variable_data = ""
         variable_name = ""
-        for line in string.split('\n')[6:]:
+        data_start = string.find('\n\n') + 2
+        for line in string[data_start:].split('\n'):
             tabs_count = self.count_tabs(line)
             
             if variable_name != "" and tabs_count != 2:
