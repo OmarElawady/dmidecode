@@ -1,11 +1,8 @@
 import pytest
 import decoder
-def test_parse_handle():
-    o = decoder.DMIParser()
-    assert o.parse_handle("Handle 0x1234, DMI type 13, 244 bytes") == ["0x1234", "13", "244"], "Couldn't parse handle"
-
-def test_parse_dmi():
-    o = decoder.DMIParser().parse_dmi("""# dmidecode 3.1
+@pytest.fixture
+def parse():
+    return decoder.DMIParser().parse_dmi("""# dmidecode 3.1
 Getting SMBIOS data from sysfs.
 SMBIOS 2.7 present.
 80 structures occupying 3244 bytes.
@@ -39,15 +36,43 @@ BIOS Information
 \t\tPrinter services are supported (int 17h)
 \t\tCGA/mono video services are supported (int 10h)
 \t\tACPI is supported
-\t\tUSB legacy is supported)""")
-    import json
-    print(json.dumps(o, default=lambda o: o.__dict__, indent=2))
-    assert len(o) == 1, "length is not calculated right"
-    assert o["BIOS Information"].handle == '0x0000', "hand;e is wrong"
-    assert o["BIOS Information"].typ == '0', "type is wrong"
-    assert o["BIOS Information"].size == '24', "size is wrong"
-    assert o["BIOS Information"].get_property('Vendor') == 'Dell Inc.', "Vendor is wrong"
-    assert o["BIOS Information"].get_property('Characteristics') == """PCI is supported
+\t\tUSB legacy is supported)
+
+Handle 0xDA02, DMI type 219, 11 bytes
+OEM-specific Type
+\tHeader and Data:
+\t\tDB 0B 02 DA 02 01 02 03 FF 04 05
+\tStrings:
+\t\t00h
+\t\t00h
+\t\t00h
+\t\t00h
+\t\t00h
+""")
+
+def test_parse_handle():
+    o = decoder.DMIParser()
+    assert o.parse_handle("Handle 0x1234, DMI type 13, 244 bytes") == ["0x1234", "13", "244"], "Couldn't parse handle"
+
+def test_parse_props(parse):
+    assert parse["BIOS Information"].handle == '0x0000', "handle for BIOS is wrong"
+    assert parse["BIOS Information"].typ == '0', "type for BIOS is wrong"
+    assert parse["BIOS Information"].size == '24', "size for BIOS is wrong"
+    assert parse["OEM-specific Type"].handle == "0xDA02", "handle for OEM is wrong"
+    assert parse["OEM-specific Type"].typ == "219", "handle for OEM is wrong"
+    assert parse["OEM-specific Type"].size == "11", "handle for OEM is wrong"
+
+def test_parse_data_single(parse):
+    assert parse["BIOS Information"].data["Vendor"] == 'Dell Inc.', "handle for BIOS is wrong"
+    assert parse["BIOS Information"].data["Version"] == "A14", "Version for BIOS is wrong"
+    assert parse["BIOS Information"].data["Release Date"] == "05/13/2013", "!!BIOS's Release Data"
+    assert parse["BIOS Information"].data["Address"] == "0xE0000", "!!BIOS's Address"
+    assert parse["BIOS Information"].data["Runtime Size"] == "128 kB","!!BIOS's runtime size"
+    assert parse["BIOS Information"].data["ROM Size"] == "4608 kB", "!!BIOS's ROM size"
+    assert parse["OEM-specific Type"].data["Header and Data"] == "DB 0B 02 DA 02 01 02 03 FF 04 05", "!!OEM's header and data"
+
+def test_parse_multiline_data(parse):
+    assert parse["BIOS Information"].data["Characteristics"] == """PCI is supported
 PNP is supported
 BIOS is upgradeable
 BIOS shadowing is allowed
@@ -56,14 +81,19 @@ Selectable boot is supported
 EDD is supported
 Japanese floppy for NEC 9800 1.2 MB is supported (int 13h)
 Japanese floppy for Toshiba 1.2 MB is supported (int 13h)
-5.25"/360 kB floppy services are supported (int 13h)
-5.25"/1.2 MB floppy services are supported (int 13h)
-3.5"/720 kB floppy services are supported (int 13h)
-3.5"/2.88 MB floppy services are supported (int 13h)
+5.25\"/360 kB floppy services are supported (int 13h)
+5.25\"/1.2 MB floppy services are supported (int 13h)
+3.5\"/720 kB floppy services are supported (int 13h)
+3.5\"/2.88 MB floppy services are supported (int 13h)
 Print screen service is supported (int 5h)
 8042 keyboard services are supported (int 9h)
 Serial services are supported (int 14h)
 Printer services are supported (int 17h)
 CGA/mono video services are supported (int 10h)
 ACPI is supported
-USB legacy is supported)""", "Characteristics is wrong"
+USB legacy is supported)""", "!!BIOS's Characteristics"
+    assert parse["OEM-specific Type"].data["Strings"] == """00h
+00h
+00h
+00h
+00h""", "!!OEM strings"
