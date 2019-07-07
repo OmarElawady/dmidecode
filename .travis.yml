@@ -1,2 +1,3 @@
 language: python
-script: pytest test.py
+script: coverage run test.py
+after_success: codecov
