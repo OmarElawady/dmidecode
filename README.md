@@ -1,3 +1,6 @@
+[![codecov](https://codecov.io/gh/OmarElawady/dmidecode/branch/master/graph/badge.svg)](https://codecov.io/gh/OmarElawady/dmidecode)
+[![Build Status](https://travis-ci.com/OmarElawady/dmidecode.svg?branch=master)](https://travis-ci.com/OmarElawady/dmidecode)
+
 DMIdecode parser
 ================
 
